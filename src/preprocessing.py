@@ -1,18 +1,21 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 
 def load_data():
-    train = pd.read_csv('data/train.csv')
-    test = pd.read_csv('data/test.csv')
-    return train, test
-
-def basic_cleaning(df):
-    # Xử lý đơn giản ví dụ: điền NaN bằng 0
-    df = df.fillna(0)
+    # Đọc dữ liệu từ file CSV
+    df = pd.read_csv('data/train.csv')
     return df
 
-def scale_features(train_df, test_df, numeric_cols):
-    scaler = StandardScaler()
-    train_df[numeric_cols] = scaler.fit_transform(train_df[numeric_cols])
-    test_df[numeric_cols] = scaler.transform(test_df[numeric_cols])
-    return train_df, test_df
+def preprocess_data(df):
+    # Chỉ chọn các cột có kiểu dữ liệu là số
+    numeric_cols = df.select_dtypes(include=['number']).columns
+
+    # Điền giá trị missing (NaN) bằng giá trị trung bình cho các cột số
+    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
+
+    # Bạn có thể thực hiện thêm các bước tiền xử lý khác ở đây (nếu cần)
+
+    # Tách dữ liệu thành X (features) và y (target) nếu cần
+    X = df.drop('target_column', axis=1)  # Thay 'target_column' bằng tên cột mục tiêu của bạn
+    y = df['target_column']  # Thay 'target_column' bằng tên cột mục tiêu của bạn
+
+    return X, y
