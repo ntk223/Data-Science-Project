@@ -1,21 +1,42 @@
 import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
-def load_data():
-    # Đọc dữ liệu từ file CSV
-    df = pd.read_csv('data/train.csv')
+def handle_missing(df):
+    df = df.copy()  # Đảm bảo làm việc trên bản sao
+
+    # Thay vì dùng inplace=True, gán kết quả trực tiếp
+    df['LotFrontage'] = df['LotFrontage'].fillna(df['LotFrontage'].median())
+
+    # Cập nhật các cột khác
+    for col in ['Alley', 'FireplaceQu', 'GarageType']:
+        if col in df.columns:
+            df[col] = df[col].fillna("None")
+
     return df
 
-def preprocess_data(df):
-    # Chỉ chọn các cột có kiểu dữ liệu là số
-    numeric_cols = df.select_dtypes(include=['number']).columns
 
-    # Điền giá trị missing (NaN) bằng giá trị trung bình cho các cột số
-    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
+# Encode categorical features using Label Encoding
+def encode_categorical(df):
+    df = df.copy()
+    label_cols = ['MSZoning', 'Street', 'SaleCondition']
+    for col in label_cols:
+        if col in df.columns:
+            le = LabelEncoder()
+            df[col] = le.fit_transform(df[col].astype(str))
+    return df
 
-    # Bạn có thể thực hiện thêm các bước tiền xử lý khác ở đây (nếu cần)
+# Add new features
+# SF = Total Square Footage
+# TotalSF = Total Basement + 1st Floor + 2nd Floor
+def add_features(df):
+    df = df.copy()
+    if {'TotalBsmtSF', '1stFlrSF', '2ndFlrSF'}.issubset(df.columns):
+        df['TotalSF'] = df['TotalBsmtSF'] + df['1stFlrSF'] + df['2ndFlrSF']
+    return df
 
-    # Tách dữ liệu thành X (features) và y (target) nếu cần
-    X = df.drop('target_column', axis=1)  # Thay 'target_column' bằng tên cột mục tiêu của bạn
-    y = df['target_column']  # Thay 'target_column' bằng tên cột mục tiêu của bạn
-
-    return X, y
+def preprocess(df):
+    df = handle_missing(df)
+    df = encode_categorical(df)
+    df = add_features(df)
+    return df
