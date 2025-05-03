@@ -1,34 +1,33 @@
-# import sys
-# import os
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import pandas as pd
+import sys
+sys.path.append("../src")
+from preprocessing import preprocess
+# Đọc dữ liệu train và test
+df_train = pd.read_csv('../data/train.csv')
+df_test = pd.read_csv('../data/test.csv')
 
-# from src.preprocessing import load_data, preprocess_data
-# from src.modeling import train_model, evaluate_model
-# from sklearn.model_selection import train_test_split
+from catboost import CatBoostRegressor
+# Tiền xử lý dữ liệu (đảm bảo bạn đã xử lý dữ liệu train và test giống nhau)
+df_train_processed = preprocess(df_train)  # Hàm tiền xử lý bạn đã tạo
+df_test_processed = preprocess(df_test)
 
-# import pandas as pd
-# import logging
-# # Configure logging
-# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Chọn đặc trưng (features) và target từ df_train
+X_train = df_train_processed.drop('SalePrice', axis=1)  # Loại bỏ cột SalePrice
+y_train = df_train_processed['SalePrice']
 
-# def main():
-#     # Load and preprocess data
-#     logging.info("Loading data...")
-#     data = load_data()
-#     logging.info("Preprocessing data...")
-#     X, y = preprocess_data(data)
+# Huấn luyện mô hình
+model = CatBoostRegressor(iterations=500, learning_rate=0.05, depth=6, random_state=42, verbose=0)
+model.fit(X_train, y_train)
 
-#     # Split data into training and testing sets
-#     logging.info("Splitting data into train and test sets...")
-#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Dự đoán trên dữ liệu kiểm thử
+X_test = df_test_processed  # Đảm bảo rằng df_test_processed đã được tiền xử lý
+y_pred = model.predict(X_test)
 
-#     # Train the model
-#     logging.info("Training the model...")
-#     model = train_model(X_train, y_train)
+# Tạo DataFrame kết quả
+submission = pd.DataFrame({
+    'Id': df_test['Id'],   # Cột Id từ dữ liệu test
+    'SalePrice': y_pred    # Cột dự đoán
+})
 
-#     # Evaluate the model
-#     logging.info("Evaluating the model...")
-#     evaluate_model(model, X_test, y_test)
-
-# if __name__ == "__main__":
-#     main()
+# Lưu kết quả vào file CSV
+submission.to_csv('submission.csv', index=False)
