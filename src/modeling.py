@@ -9,18 +9,8 @@ from catboost import CatBoostRegressor
 from sklearn.metrics import mean_squared_error
 import numpy as np
 
-def train_xgboost(X_train, y_train):
-    model = xgb.XGBRegressor(objective="reg:squarederror", random_state=42)
-    model.fit(X_train, y_train)
-    return model
-
-def train_lightgbm(X_train, y_train):
-    model = lgb.LGBMRegressor(objective="regression", random_state=42)
-    model.fit(X_train, y_train)
-    return model
-
 def train_catboost(X_train, y_train):
-    model = CatBoostRegressor(iterations=1000, learning_rate=0.1, depth=6, random_seed=42, verbose=0)
+    model = CatBoostRegressor(iterations=1500, learning_rate=0.1, depth=4, random_seed=42, verbose=0)
     model.fit(X_train, y_train)
     return model
 
